@@ -1,7 +1,12 @@
 # Superagent Brief 與裁定模板
 
 > [!IMPORTANT]
-> 給所有 Worker 的檔案路徑（尤其派給 `agy` 時）**一律使用絕對路徑**，避免子代理在獨立 worktree 或沙盒內組錯相對路徑而觸發權限對話框。
+> 給 worker 的檔案路徑一律寫絕對路徑。worker 在獨立 worktree 或沙盒裡組相對路徑容易出錯，進而觸發權限對話框。
+
+> [!NOTE]
+> 報告路徑以 worker 的 prompt 檔為準：`dispatch` 預設為 `stages/<stage>/report-<角色>.md`，也可以用 `--report` 指定。brief 裡要寫報告路徑，就寫同一個。
+>
+> 完成標記寫在報告最後一行。worker 寫完報告後，照它的 prompt 執行 `post --kind done --file <報告>`，Router 以這則 post 為完成訊號。標記用於 `verify-gate`；worker 漏發 post 時，`watch` 也靠它代發。
 
 ---
 
@@ -24,10 +29,10 @@
 | <邊界 2> | <結果> | <不變量> |
 
 ## 必要驗證與日誌規定
-所有測試與檢查輸出必須寫入 `<logs 絕對路徑>\`，且每份 `.log` 最後一行必須寫 `exit=<結束碼>`：
-1. 格式／靜態檢查：`<指令>` → `<logs>\lint.log`
-2. 單元與整合測試：`<指令>` → `<logs>\test.log`
-3. 變異驗證（適用修正或關鍵邊界）：暫時還原修法確認新測試失敗 → `<logs>\mutation.log`，再還原回修法重跑通過。
+所有測試與檢查輸出必須寫入 `<logs 絕對路徑>/`，且每份 `.log` 最後一行必須寫 `exit=<結束碼>`：
+1. 格式／靜態檢查：`<指令>` → `<logs>/lint.log`
+2. 單元與整合測試：`<指令>` → `<logs>/test.log`
+3. 變異驗證（適用修正或關鍵邊界）：暫時還原修法確認新測試失敗 → `<logs>/mutation.log`，再還原回修法重跑通過。
 
 ## 報告格式與完成標記
 - 報告寫至：`<report 絕對路徑>`
@@ -54,7 +59,7 @@ IMPL DONE
    - 必補測試與變異驗證：<測試名稱與變異日誌路徑>
 
 ## 驗證與回報
-- 跑完完整驗證寫入 `<logs 絕對路徑>\r<n>_*.log`（結尾 `exit=<code>`）。
+- 跑完完整驗證寫入 `<logs 絕對路徑>/r<n>_*.log`（結尾 `exit=<code>`）。
 - 修正報告寫至：`<report_r<n>.md 絕對路徑>`
 - 完成後於最後一行單獨寫上：
 
@@ -65,10 +70,10 @@ FIX R<n> DONE
 
 ## 3. 獨立審查 Brief（`review_brief_<id>.md`）
 
-適用於 `codex`（預設看正確性／並行／測試品質）與 `agy`（預設看設計一致／安全／EGM 視角）。
+給 `review` 類角色用。需要雙審時，各給一個視角，例如一個看正確性、並行與測試品質，另一個看設計一致性與安全。由哪個 CLI 執行，看 `config.json` 的角色設定。
 
 ```markdown
-# 階段 <NN>-<slug>：獨立審查 Brief（<審查者角色：A 正確性 / B 安全與設計>）
+# 階段 <NN>-<slug>：獨立審查 Brief（<角色名稱>：<審查視角>）
 
 ## 審查範圍與輸入（一律絕對路徑）
 - **專案目錄**：`<repo 或 worktree 絕對路徑>`
